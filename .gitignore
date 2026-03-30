@@ -1,0 +1,40 @@
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Build directories
+build/
+Build/
+out/
+dist/
+
+# Generated executables and libraries
+*.a
+*.so
+*.dylib
+*.exe
+*.dll
+*.lib
+
+# Emscripten generated files
+*.js
+*.wasm
+*.mem
+*.js.mem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Testing
+Testing/
