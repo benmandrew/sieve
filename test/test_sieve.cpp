@@ -17,7 +17,7 @@ const std::vector<std::string> k_words = {
 
 std::string score_feedback(std::string_view guess, std::string_view target) {
     std::string feedback(guess.size(), 'b');
-    std::array<int, 26> remaining{};
+    std::array<int, sieve::k_alphabet_size> remaining{};
     for (std::size_t i = 0; i < guess.size(); ++i) {
         if (guess[i] == target[i]) {
             feedback[i] = 'g';

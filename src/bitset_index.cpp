@@ -169,8 +169,7 @@ void FilterView::apply_count_constraints(const letter_count_array &min_count,
                                          const letter_count_array &max_count,
                                          const letter_flag_array &has_grey) {
     letter_count_array effective_max_count = max_count;
-    for (std::size_t letter = 0; letter < BitsetIndex::k_alphabet_size;
-         ++letter) {
+    for (std::size_t letter = 0; letter < k_alphabet_size; ++letter) {
         if (has_grey[letter]) {
             effective_max_count[letter] = min_count[letter];
         }

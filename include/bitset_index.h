@@ -9,6 +9,9 @@
 
 namespace sieve {
 
+/// Number of letters in the Latin alphabet.
+inline constexpr std::size_t k_alphabet_size = 26;
+
 class BitsetIndex;
 
 /// Mutable filtered view over a BitsetIndex dictionary.
@@ -57,10 +60,10 @@ class FilterView {
 
   private:
     /// Fixed-size array of per-letter counts.
-    using letter_count_array = std::array<std::size_t, 26>;
+    using letter_count_array = std::array<std::size_t, k_alphabet_size>;
 
     /// Fixed-size array of per-letter flags.
-    using letter_flag_array = std::array<bool, 26>;
+    using letter_flag_array = std::array<bool, k_alphabet_size>;
 
     /// Initialize temporary min/max count constraints before evaluation.
     ///
@@ -138,9 +141,6 @@ class BitsetIndex {
     /// Build precomputed lookup masks used during filtering.
     void build_lookup_masks();
 
-    /// Number of supported lowercase latin letters.
-    static constexpr int k_alphabet_size = 26;
-
     /// Feedback marker for exact-position match.
     static constexpr char k_green = 'g';
 
@@ -153,7 +153,8 @@ class BitsetIndex {
     /// Convert a lowercase latin character to its alphabet index.
     ///
     /// @param c Input character.
-    /// @return Zero-based alphabet index in [0, 25].
+    /// @return Zero-based alphabet index in [0, @ref sieve::k_alphabet_size -
+    /// 1].
     static int char_to_index(char c);
 
     /// Compute number of uint64 words needed for a bitset.
