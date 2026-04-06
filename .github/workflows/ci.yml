@@ -1,0 +1,36 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  nix-build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v15
+
+      - name: Configure Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Check flake.lock policy
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+          check-outdated: true
+          check-owner: true
+          check-supported: true
+
+      - name: Run project checks (format-ci, flake-check, lint, docs, tests)
+        run: nix --extra-experimental-features 'nix-command flakes' run .#check
+
+      - name: Build default package
+        run: nix --extra-experimental-features 'nix-command flakes' build .#default

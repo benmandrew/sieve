@@ -61,22 +61,36 @@
             pkgs.clang-tools
             pkgs.cppcheck
             pkgs.doxygen
+            pkgs.flake-checker
             docsPython
-            pkgs.python3Packages.cpplint
+            pkgs.cpplint
           ];
           shellHook = ''
             echo "sieve dev shell ready"
-            echo "Try: cmake -S . -B build && cmake --build build --target format lint docs"
+            echo "Try: cmake -S . -B build && cmake --build build --target format-ci lint docs"
           '';
         };
         apps.check = {
           type = "app";
-          program = toString (pkgs.writeShellScript "sieve-check" ''
-            set -euo pipefail
-            cmake -S . -B build
-            cmake --build build --target format lint docs
-            ctest --test-dir build --output-on-failure
-          '');
+          program = toString ((pkgs.writeShellApplication {
+            name = "sieve-check";
+            runtimeInputs = [
+              pkgs.cmake
+              pkgs.ninja
+              pkgs.clang-tools
+              pkgs.cppcheck
+              pkgs.doxygen
+              pkgs.flake-checker
+              docsPython
+              pkgs.cpplint
+            ];
+            text = ''
+              set -euo pipefail
+              cmake -S . -B build
+              cmake --build build --target format-ci flake-check lint docs
+              ctest --test-dir build --output-on-failure
+            '';
+          }) + "/bin/sieve-check");
         };
       });
 }

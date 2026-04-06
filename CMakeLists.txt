@@ -24,6 +24,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/docs.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/format.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/lint.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/library_and_wasm.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/nix.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/testing.cmake)
 
 # Optional: Print build configuration
