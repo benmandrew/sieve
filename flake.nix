@@ -28,7 +28,12 @@
             ];
             doCheck = true;
             checkPhase = ''
-              ctest --test-dir build --output-on-failure
+              ctest --output-on-failure
+            '';
+            installPhase = ''
+              mkdir -p "$out/lib" "$out/include"
+              cp libsieve_lib.a "$out/lib/"
+              cp -r ../include/. "$out/include/"
             '';
           };
           docs = pkgs.runCommand "sieve-docs-0.1.0"
