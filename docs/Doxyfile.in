@@ -1,0 +1,23 @@
+PROJECT_NAME           = "sieve"
+PROJECT_BRIEF          = "Bitset-based Wordle filtering engine"
+OUTPUT_DIRECTORY       = @DOXYGEN_OUTPUT_DIR@
+CREATE_SUBDIRS         = NO
+GENERATE_HTML          = NO
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+
+INPUT                  = @CMAKE_SOURCE_DIR@/include \
+						 @CMAKE_SOURCE_DIR@/src
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
+FILE_PATTERNS          = *.h *.hpp *.cpp *.cc *.cxx
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_AS_ERROR          = NO

@@ -6,34 +6,60 @@
 #include <utility>
 
 namespace sieve {
+/// @cond INTERNAL
 namespace {
 
 using Bitset = BitsetIndex::Bitset;
 
+/// Set one bit in a dynamic bitset.
+///
+/// @param bitset Bitset to modify.
+/// @param index Bit index to set.
 void set_bit(Bitset &bitset, std::size_t index) {
   const std::size_t word = index / 64;
   const std::size_t bit = index % 64;
   bitset[word] |= (static_cast<std::uint64_t>(1) << bit);
 }
 
+/// Test one bit in a dynamic bitset.
+///
+/// @param bitset Bitset to query.
+/// @param index Bit index to test.
+/// @return True if the indexed bit is set.
 bool test_bit(const Bitset &bitset, std::size_t index) {
   const std::size_t word = index / 64;
   const std::size_t bit = index % 64;
   return ((bitset[word] >> bit) & static_cast<std::uint64_t>(1)) != 0;
 }
 
+/// Apply bitwise AND into target.
+///
+/// @param target Bitset updated in place.
+/// @param mask Bitset mask to AND with target.
 void bit_and(Bitset &target, const Bitset &mask) {
   for (std::size_t i = 0; i < target.size(); ++i) {
     target[i] &= mask[i];
   }
 }
 
+/// Apply bitwise AND-NOT into target.
+///
+/// @param target Bitset updated in place.
+/// @param mask Bitset mask whose set bits are cleared from target.
 void bit_and_not(Bitset &target, const Bitset &mask) {
   for (std::size_t i = 0; i < target.size(); ++i) {
     target[i] &= ~mask[i];
   }
 }
 
+/// Compute bitwise OR across a subrange of bitset masks.
+///
+/// @tparam MaskContainer Container type indexed by mask index.
+/// @param masks Mask container.
+/// @param begin_index Inclusive start index.
+/// @param end_index_exclusive Exclusive end index.
+/// @param word_count Number of uint64 words per mask.
+/// @return Combined OR mask.
 template <typename MaskContainer>
 Bitset bit_or(const MaskContainer &masks, std::size_t begin_index,
               std::size_t end_index_exclusive, std::size_t word_count) {
@@ -49,6 +75,10 @@ Bitset bit_or(const MaskContainer &masks, std::size_t begin_index,
   return result;
 }
 
+/// Count set bits across a dynamic bitset.
+///
+/// @param bitset Input bitset.
+/// @return Number of set bits.
 std::size_t popcount_bitset(const Bitset &bitset) {
   std::size_t total = 0;
   for (const std::uint64_t word : bitset) {
@@ -66,6 +96,7 @@ std::size_t popcount_bitset(const Bitset &bitset) {
 }
 
 } // namespace
+/// @endcond
 
 FilterView::FilterView(const BitsetIndex &index, bool all_candidates)
     : m_index(index),

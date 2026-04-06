@@ -19,6 +19,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+# Documentation targets
+add_subdirectory(docs)
+
 # clang-format target
 find_program(CLANG_FORMAT_EXE NAMES clang-format)
 if(CLANG_FORMAT_EXE)
