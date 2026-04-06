@@ -87,7 +87,7 @@
             text = ''
               set -euo pipefail
               cmake -S . -B build
-              cmake --build build --target format-ci flake-check lint docs
+              cmake --build build --target sieve_tests format-ci flake-check lint docs
               ctest --test-dir build --output-on-failure
             '';
           }) + "/bin/sieve-check");
