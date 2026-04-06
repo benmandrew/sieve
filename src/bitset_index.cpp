@@ -34,7 +34,8 @@ void bit_and_not(Bitset &target, const Bitset &mask) {
   }
 }
 
-Bitset bit_or(const std::vector<Bitset> &masks, std::size_t begin_index,
+template <typename MaskContainer>
+Bitset bit_or(const MaskContainer &masks, std::size_t begin_index,
               std::size_t end_index_exclusive, std::size_t word_count) {
   Bitset result(word_count, 0);
   if (begin_index >= end_index_exclusive) {
@@ -198,12 +199,15 @@ void BitsetIndex::validate_words_and_initialize_length() {
 
 void BitsetIndex::build_lookup_masks() {
   m_bit_count = bitset_word_count(m_words.size());
-  m_position_letter_masks.assign(
-      m_word_length,
-      std::vector<Bitset>(k_alphabet_size, Bitset(m_bit_count, 0)));
-  m_letter_count_masks.assign(
-      k_alphabet_size,
-      std::vector<Bitset>(m_word_length + 1, Bitset(m_bit_count, 0)));
+  m_position_letter_masks.assign(m_word_length, {});
+  for (auto &letter_masks : m_position_letter_masks) {
+    for (Bitset &mask : letter_masks) {
+      mask.assign(m_bit_count, 0);
+    }
+  }
+  for (std::vector<Bitset> &count_masks : m_letter_count_masks) {
+    count_masks.assign(m_word_length + 1, Bitset(m_bit_count, 0));
+  }
   for (std::size_t word_index = 0; word_index < m_words.size(); ++word_index) {
     const std::string &word = m_words[word_index];
     std::array<std::size_t, k_alphabet_size> counts{};

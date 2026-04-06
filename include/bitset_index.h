@@ -77,8 +77,8 @@ private:
   std::size_t m_word_length;
   std::size_t m_bit_count;
 
-  std::vector<std::vector<Bitset>> m_position_letter_masks;
-  std::vector<std::vector<Bitset>> m_letter_count_masks;
+  std::vector<std::array<Bitset, k_alphabet_size>> m_position_letter_masks;
+  std::array<std::vector<Bitset>, k_alphabet_size> m_letter_count_masks;
 };
 
 } // namespace sieve
