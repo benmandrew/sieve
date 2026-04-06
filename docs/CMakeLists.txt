@@ -1,6 +1,11 @@
 find_package(Doxygen QUIET)
 find_package(Python3 COMPONENTS Interpreter QUIET)
 
+set(DOCS_IN_NIX FALSE)
+if(DEFINED ENV{IN_NIX_SHELL})
+    set(DOCS_IN_NIX TRUE)
+endif()
+
 set(DOCS_VENV_DIR ${CMAKE_BINARY_DIR}/docs/.venv)
 if(WIN32)
     set(DOCS_VENV_PYTHON ${DOCS_VENV_DIR}/Scripts/python.exe)
@@ -8,7 +13,13 @@ else()
     set(DOCS_VENV_PYTHON ${DOCS_VENV_DIR}/bin/python3)
 endif()
 
-if(Python3_Interpreter_FOUND)
+if(DOCS_IN_NIX)
+    add_custom_target(docs-setup
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs
+        COMMAND ${CMAKE_COMMAND} -E echo "Using Nix-provided Python and Sphinx dependencies."
+        COMMENT "Documentation setup via Nix environment"
+    )
+elseif(Python3_Interpreter_FOUND)
     add_custom_target(docs-setup
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs
         COMMAND ${Python3_EXECUTABLE} -m venv ${DOCS_VENV_DIR}
@@ -26,6 +37,12 @@ endif()
 if(DOXYGEN_FOUND AND Python3_Interpreter_FOUND)
     set(DOXYGEN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/docs/doxygen)
 
+    if(DOCS_IN_NIX)
+        set(DOCS_PYTHON_FOR_SPHINX ${Python3_EXECUTABLE})
+    else()
+        set(DOCS_PYTHON_FOR_SPHINX ${DOCS_VENV_PYTHON})
+    endif()
+
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
         ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
@@ -37,7 +54,7 @@ if(DOXYGEN_FOUND AND Python3_Interpreter_FOUND)
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         COMMAND ${CMAKE_COMMAND} -E env
             SPHINX_DOXYGEN_XML_DIR=${DOXYGEN_OUTPUT_DIR}/xml
-            ${DOCS_VENV_PYTHON} -m sphinx -W --keep-going -b html
+            ${DOCS_PYTHON_FOR_SPHINX} -m sphinx -W --keep-going -b html
             ${CMAKE_CURRENT_SOURCE_DIR}
             ${CMAKE_BINARY_DIR}/docs/html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -45,12 +62,10 @@ if(DOXYGEN_FOUND AND Python3_Interpreter_FOUND)
     )
     add_dependencies(docs docs-setup)
 else()
-    message(WARNING "Docs target disabled: install Doxygen, Python 3, and the Sphinx/Breathe packages to build documentation.")
+    message(WARNING "Docs target disabled: install Doxygen and Sphinx (with Breathe/Furo) to build documentation.")
     add_custom_target(docs
-        COMMAND ${CMAKE_COMMAND} -E echo "Docs require Doxygen, Python 3, and the Sphinx/Breathe Python packages."
+        COMMAND ${CMAKE_COMMAND} -E echo "Docs require Doxygen and Sphinx tooling with Breathe/Furo."
         COMMENT "Documentation tooling not available"
     )
-    if(Python3_Interpreter_FOUND)
-        add_dependencies(docs docs-setup)
-    endif()
+    add_dependencies(docs docs-setup)
 endif()
