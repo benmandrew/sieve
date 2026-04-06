@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -24,6 +25,20 @@ public:
   const std::string *next_candidate(std::size_t &cursor) const;
 
 private:
+  using letter_count_array = std::array<std::size_t, 26>;
+  using letter_flag_array = std::array<bool, 26>;
+
+  void initialize_letter_constraints(letter_count_array &min_count,
+                                     letter_count_array &max_count,
+                                     letter_flag_array &has_grey) const;
+  void apply_position_constraints(std::string_view guess,
+                                  std::string_view feedback,
+                                  letter_count_array &min_count,
+                                  letter_flag_array &has_grey);
+  void apply_count_constraints(const letter_count_array &min_count,
+                               const letter_count_array &max_count,
+                               const letter_flag_array &has_grey);
+
   friend class BitsetIndex;
 
   const BitsetIndex &m_index;
@@ -43,6 +58,9 @@ public:
 
 private:
   friend class FilterView;
+
+  void validate_words_and_initialize_length();
+  void build_lookup_masks();
 
   static constexpr int k_alphabet_size = 26;
   static constexpr char k_green = 'g';

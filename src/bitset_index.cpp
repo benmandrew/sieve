@@ -2,6 +2,7 @@
 
 #include <array>
 #include <limits>
+#include <stdexcept>
 #include <utility>
 
 namespace sieve {
@@ -13,12 +14,6 @@ void set_bit(Bitset &bitset, std::size_t index) {
   const std::size_t word = index / 64;
   const std::size_t bit = index % 64;
   bitset[word] |= (static_cast<std::uint64_t>(1) << bit);
-}
-
-void clear_bit(Bitset &bitset, std::size_t index) {
-  const std::size_t word = index / 64;
-  const std::size_t bit = index % 64;
-  bitset[word] &= ~(static_cast<std::uint64_t>(1) << bit);
 }
 
 bool test_bit(const Bitset &bitset, std::size_t index) {
@@ -86,25 +81,38 @@ void FilterView::apply_feedback(std::string_view guess,
     throw std::invalid_argument(
         "guess and feedback must match dictionary word length");
   }
-  std::array<std::size_t, BitsetIndex::k_alphabet_size> min_count{};
-  std::array<std::size_t, BitsetIndex::k_alphabet_size> max_count{};
-  std::array<bool, BitsetIndex::k_alphabet_size> has_grey{};
-  for (std::size_t i = 0; i < BitsetIndex::k_alphabet_size; ++i) {
-    max_count[i] = m_index.m_word_length;
-  }
+  letter_count_array min_count{};
+  letter_count_array max_count{};
+  letter_flag_array has_grey{};
+  initialize_letter_constraints(min_count, max_count, has_grey);
+  apply_position_constraints(guess, feedback, min_count, has_grey);
+  apply_count_constraints(min_count, max_count, has_grey);
+}
+
+void FilterView::initialize_letter_constraints(
+    letter_count_array &min_count, letter_count_array &max_count,
+    letter_flag_array &has_grey) const {
+  min_count.fill(0);
+  has_grey.fill(false);
+  max_count.fill(m_index.m_word_length);
+}
+
+void FilterView::apply_position_constraints(std::string_view guess,
+                                            std::string_view feedback,
+                                            letter_count_array &min_count,
+                                            letter_flag_array &has_grey) {
   for (std::size_t pos = 0; pos < m_index.m_word_length; ++pos) {
     const int letter = BitsetIndex::char_to_index(guess[pos]);
     const char mark = feedback[pos];
-    if (mark == BitsetIndex::k_green || mark == BitsetIndex::k_yellow ||
-        mark == BitsetIndex::k_grey) {
-      if (mark == BitsetIndex::k_green || mark == BitsetIndex::k_yellow) {
-        ++min_count[static_cast<std::size_t>(letter)];
-      }
-      if (mark == BitsetIndex::k_grey) {
-        has_grey[static_cast<std::size_t>(letter)] = true;
-      }
-    } else {
+    if (mark != BitsetIndex::k_green && mark != BitsetIndex::k_yellow &&
+        mark != BitsetIndex::k_grey) {
       throw std::invalid_argument("feedback must use only 'g', 'y', or 'b'");
+    }
+    if (mark == BitsetIndex::k_green || mark == BitsetIndex::k_yellow) {
+      ++min_count[static_cast<std::size_t>(letter)];
+    }
+    if (mark == BitsetIndex::k_grey) {
+      has_grey[static_cast<std::size_t>(letter)] = true;
     }
     if (mark == BitsetIndex::k_green) {
       bit_and(
@@ -118,13 +126,19 @@ void FilterView::apply_feedback(std::string_view guess,
               .m_position_letter_masks[pos][static_cast<std::size_t>(letter)]);
     }
   }
+}
+
+void FilterView::apply_count_constraints(const letter_count_array &min_count,
+                                         const letter_count_array &max_count,
+                                         const letter_flag_array &has_grey) {
+  letter_count_array effective_max_count = max_count;
   for (std::size_t letter = 0; letter < BitsetIndex::k_alphabet_size;
        ++letter) {
     if (has_grey[letter]) {
-      max_count[letter] = min_count[letter];
+      effective_max_count[letter] = min_count[letter];
     }
     const std::size_t min_c = min_count[letter];
-    const std::size_t max_c = max_count[letter];
+    const std::size_t max_c = effective_max_count[letter];
     if (min_c > max_c) {
       clear();
       return;
@@ -143,7 +157,6 @@ bool FilterView::is_candidate(std::size_t index) const {
   if (index >= m_index.m_words.size()) {
     throw std::out_of_range("candidate index is out of range");
   }
-
   return test_bit(m_candidates, index);
 }
 
@@ -161,6 +174,11 @@ const std::string *FilterView::next_candidate(std::size_t &cursor) const {
 BitsetIndex::BitsetIndex(std::vector<std::string> words)
     : m_words(std::move(words)), m_word_length(0), m_bit_count(0),
       m_position_letter_masks(), m_letter_count_masks() {
+  validate_words_and_initialize_length();
+  build_lookup_masks();
+}
+
+void BitsetIndex::validate_words_and_initialize_length() {
   if (m_words.empty()) {
     throw std::invalid_argument("word dictionary cannot be empty");
   }
@@ -176,6 +194,9 @@ BitsetIndex::BitsetIndex(std::vector<std::string> words)
       char_to_index(c);
     }
   }
+}
+
+void BitsetIndex::build_lookup_masks() {
   m_bit_count = bitset_word_count(m_words.size());
   m_position_letter_masks.assign(
       m_word_length,
