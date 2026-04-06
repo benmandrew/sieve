@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(sieve CXX)
 
+# Generate compiler commands for IDEs and language servers.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Determine if we're building with Emscripten
 if(EMSCRIPTEN)
     message(STATUS "Building with Emscripten for web target")
@@ -16,9 +19,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+# clang-format target
+find_program(CLANG_FORMAT_EXE NAMES clang-format)
+if(CLANG_FORMAT_EXE)
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT_EXE} -i
+            ${CMAKE_SOURCE_DIR}/include/bitset_index.h
+            ${CMAKE_SOURCE_DIR}/src/bitset_index.cpp
+            ${CMAKE_SOURCE_DIR}/src/wasm_bindings.cpp
+            ${CMAKE_SOURCE_DIR}/test/test_sieve.cpp
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Formatting C++ sources with clang-format"
+    )
+else()
+    message(WARNING "clang-format not found; 'format' target is unavailable")
+endif()
+
 # Library source files
 set(SIEVE_SOURCES
-    src/sieve.cpp
+    src/bitset_index.cpp
 )
 
 # Create library

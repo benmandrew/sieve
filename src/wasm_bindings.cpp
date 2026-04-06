@@ -1,6 +1,6 @@
 #ifdef __EMSCRIPTEN__
+#include "bitset_index.h"
 #include <emscripten/bind.h>
-#include "sieve.h"
 
 using namespace emscripten;
 
