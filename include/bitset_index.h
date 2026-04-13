@@ -7,10 +7,9 @@
 #include <string_view>
 #include <vector>
 
-namespace sieve {
+#include "util.h"
 
-/// Number of letters in the Latin alphabet.
-inline constexpr std::size_t k_alphabet_size = 26;
+namespace sieve {
 
 class BitsetIndex;
 

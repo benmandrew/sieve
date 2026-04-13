@@ -1,10 +1,14 @@
 # Library source files
 set(SIEVE_SOURCES
     src/bitset_index.cpp
+    src/util.cpp
 )
 
 # Create library
 add_library(sieve_lib ${SIEVE_SOURCES})
+
+add_executable(sieve src/main.cpp)
+target_link_libraries(sieve sieve_lib)
 
 # Emscripten-specific library setup
 if(EMSCRIPTEN)
